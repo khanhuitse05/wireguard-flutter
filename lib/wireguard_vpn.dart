@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 import 'src/models/models.dart';
 import 'wireguard_vpn_platform_interface.dart';
 
@@ -22,4 +24,10 @@ class WireguardVpn {
   Future<Stats?> tunnelGetStats(String name) {
     return WireguardVpnPlatform.instance.tunnelGetStats(name);
   }
+
+  ///Snapshot of stream that produced by native side
+  Stream<String> eventChannelSnapshot() =>
+      const EventChannel('pingak9/wireguard-state-flutter')
+          .receiveBroadcastStream()
+          .cast();
 }

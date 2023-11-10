@@ -61,11 +61,11 @@ For run and setup wireguard follow => https://github.com/WireGuard/wireguard-app
 
 ### II. Add Network Extension
 1. Add 2 capabillity on Runner's Target, App Groups and Network Extensions, Look at the image below to get clearer details
-![](./resources/Images/image1.png)
+    - ![](./resources/Images/image1.png)
 2. Click + button on bottom left, Choose NETWORK EXTENSION, and follow instruction's image bellow
-![](./resources/Images/image2.png)
+    - ![](./resources/Images/image2.png)
 3. Add Capabillity on VPNExtension, Do it same like Runner's Capabillitiy
-![](./resources/Images/image3.png)
+    - ![](./resources/Images/image3.png)
 4. Go to Xcode project settings and locate your network extension target and switch to 
    "Build Phases" tab.
    
@@ -82,18 +82,33 @@ For run and setup wireguard follow => https://github.com/WireGuard/wireguard-app
 ### III. Add Swift code to iOS Project
 
 1. Open VPNExtension > PacketTunnelProvider.swift and copy paste this script `./resources/WireConnect/PacketTunnelProvider.swift`
-![](./resources/Images/image4.png)
+    - ![](./resources/Images/image4.png)
 2. Open XCode and add all swift files in folder `./resources/Runner/` to Runner (Right click to Runner -> Add File to Runner)
-![](./resources/Images/image5.png)
+    - ![](./resources/Images/image5.png)
 
 3. Select your Network Extension, add add the swift file under the folder `Share` folder to `Compile Sources`
-![](./resources/Images/image6.png)
+    - ![](./resources/Images/image6.png)
 
+4. Create & Init `TunnelsController` on AppDelegate
+    ```diff
+    @objc class AppDelegate: FlutterAppDelegate {
+    +  var tunnelsController:TunnelsController?
+      override func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+      ) -> Bool {
+        GeneratedPluginRegistrant.register(with: self)
+    +    tunnelsController = TunnelsController()
+    +    tunnelsController?.onInit()
+        return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+      }
+    }
+    ```
 
 ### IV. Troubleshooting
 1. You must use iOS Devices instead of Simulator to connect
 2. There is error when run Flutter ios. You must open Xcode to run iOS
-![](./resources/Images/image7.png)
+    - ![](./resources/Images/image7.png)
 
 # Usage
 

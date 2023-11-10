@@ -10,8 +10,9 @@ import WireGuardKit
 import MobileCoreServices
 import WireGuardKitGo
 import WireGuardKitC
+import wireguard_vpn
 
-class TunnelsController: TunnelsManagerActivationDelegate
+class TunnelsController
 {
     var tunnelsManager: TunnelsManager?
     var onTunnelsManagerReady: ((TunnelsManager) -> Void)?
@@ -19,7 +20,6 @@ class TunnelsController: TunnelsManagerActivationDelegate
     func onInit() {
         TunnelsManager.create { [weak self] result in
             guard let self = self else { return }
-
             switch result {
             case .failure(let error):
                 print("errror is2=",error)
@@ -34,81 +34,93 @@ class TunnelsController: TunnelsManagerActivationDelegate
             }
         }
         
-        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationSetState(_:)), name: Notification.Name("wireguard_vpn_set_state"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationSetState(_:)), name: EventNames.notificationSetState, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetName(_:)), name: EventNames.notificationGetNames, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetStats(_:)), name: EventNames.notificationGetNames, object: nil)
     }
     
-  @objc func handleNotificationSetState(_ notification: Notification) {
-    // Handle the notification here
-    print("Notification received! SetState")
-      self.onToggleConnect();
-      if let userInfo = notification.userInfo {
-          // Extract information from userInfo if needed
-          let state = userInfo["state"];
-      }
-  }
+    @objc func handleNotificationSetState(_ notification: Notification) {
+        print("Notification received! SetState")
+        if let object = notification.object as? [String: Any] {
+            if let tunnel: [String: Any] = object["tunnel"] as? [String: Any]{
+                let state = (object["state"] as? Int) == 1
+                if(state == false){
+                    let tunnelName = tunnel["name"] as? String?
+                    self.onDisconnecting(tunnelName: (tunnelName ?? "")!);
+                    return;
+                }
+                if  let tunnelName = tunnel["name"] as? String,
+                    let address = tunnel["address"] as? String,
+                    let listenPort = tunnel["listenPort"] as? String,
+                    let privateKey = tunnel["privateKey"] as? String,
+                    let dnsServersString = tunnel["dnsServer"] as? String,
+                    let peerPresharedKey = tunnel["peerPresharedKey"] as? String,
+                    let peerPublicKey = tunnel["peerPublicKey"] as? String,
+                    let peerAllowedIpString = tunnel["peerAllowedIp"] as? String,
+                    let peerEndpoint = tunnel["peerEndpoint"] as? String {
+                    
+                    let dnsServers = dnsServersString.splitToArray(trimmingCharacters: .whitespacesAndNewlines)
+                    let peerAllowedIps = peerAllowedIpString.splitToArray(trimmingCharacters: .whitespacesAndNewlines)
+                    self.onConnecting(tunnelName: tunnelName, address: address, listenPort: listenPort, privateKey: privateKey, dnsServers: dnsServers, peerPresharedKey: peerPresharedKey, peerPublicKey: peerPublicKey, peerAllowedIps: peerAllowedIps, peerEndpoint: peerEndpoint);
+                }
+            }
+        }
+    }
+    @objc func handleNotificationGetName(_ notification: Notification) {
+        print("Notification received! GetName")
+        let containers = tunnelsManager?.mapTunnels(transform: { $0 })
+        containers?.forEach{
+            print($0.detail())
+            if($0.status == .active){
+                WireguardVpnPlugin.sendEvent(message: "tunnel_get_name", object: ["tunnelName": $0.name])
+                return
+            }
+        }
+        // none of tunnel is running
+    }
+    
+    @objc func handleNotificationGetStats(_ notification: Notification) {
+        print("Notification received! GetStats")
+        guard let tunnelName = notification.object as? String else{
+            // Provide tunnel name to get statistics
+            return
+        }
+        let container = tunnelsManager?.tunnel(named: tunnelName)
+        EventNames.A
+        // TODO: Implement get statistics for iOS
+    }
     
     func setTunnelsManager(tunnelsManager: TunnelsManager) {
         self.tunnelsManager = tunnelsManager
 //        tunnelsManager.tunnelsListDelegate = self
     }
     
-    
-    func tunnelActivationAttemptFailed(tunnel: TunnelContainer, error: TunnelsManagerActivationAttemptError) {
-        
-    }
-
-    
-    func tunnelActivationAttemptSucceeded(tunnel: TunnelContainer) {
-        self.connected()
-    }
-    
-    func tunnelActivationFailed(tunnel: TunnelContainer) {
-        
-    }
-    
-    func tunnelActivationSucceeded(tunnel: TunnelContainer) {
-        self.connected()
-    }
-    
-    
-    func connected(){
-        print("TunnelsController connected");
-    }
-    
-    func connecting(){
-        print("TunnelsController connecting");
-    }
-    
-    func disconnect(){
-        print("TunnelsController disconnect");
-    }
-    
-    func fail(){
-        print("TunnelsController fail");
-    }
-    
-    
-    let tunnelName = "MyWireguardVPN";
-    let address = "10.7.0.2/24";
-    let listenPort = 53133;
-    let privateKey = "uOPEZ5Cwg04BQvLMvVeLzXBbmeNPcYuUCCDHh3mlzkY=";
-    let dnsServers = ["8.8.8.8", "8.8.4.4"]
-
-    let peerPresharedKey = "DEgh40KKg4l/YR0hH9Yfnoc8Li/EvYL1etTSuykn+hU=";
-    let peerPublicKey = "OfA9O4UKvZoJef5Byufhv1rUsQwMf0bUIzoFkW5uRW8=";
-    let peerAllowedIp1 = "0.0.0.0/0";
-    let peerAllowedIp2 = "::/0";
-    let peerEndpoint = "13.228.214.146:51820";
-    func onToggleConnect() {
+    func onDisconnecting(tunnelName: String){
         if let tunnel = self.tunnelsManager!.tunnel(named: tunnelName) {
             if  tunnel.status == .active {
                 self.tunnelsManager!.startDeactivation(of: tunnel)
-                self.disconnect()
-                return
+                self.disconnect(tunnelName: tunnel.name)
+            }
+        }
+    }
+    
+    func onConnecting(
+        tunnelName: String,
+        address: String,
+        listenPort: String,
+        privateKey: String,
+        dnsServers: [String],
+        peerPresharedKey: String,
+        peerPublicKey: String,
+        peerAllowedIps: [String],
+        peerEndpoint: String) {
+        if let tunnel = self.tunnelsManager!.tunnel(named: tunnelName) {
+            if  tunnel.status == .active {
+                self.tunnelsManager!.startDeactivation(of: tunnel)
             }
         }
        
-        self.connecting()
+        self.connecting(tunnelName: tunnelName)
     
         var interface = InterfaceConfiguration(privateKey: PrivateKey(base64Key: privateKey)!)
         interface.addresses = [IPAddressRange(from: String(format: address))!]
@@ -117,25 +129,24 @@ class TunnelsController: TunnelsManagerActivationDelegate
 
         var peer = PeerConfiguration(publicKey: PublicKey(base64Key: peerPublicKey)!)
         peer.endpoint = Endpoint(from: peerEndpoint)
-        peer.allowedIPs = [IPAddressRange(from: peerAllowedIp1)!,IPAddressRange(from: peerAllowedIp2)!]
+        peer.allowedIPs = peerAllowedIps.map {IPAddressRange(from: $0)!}
         peer.persistentKeepAlive = 25
         peer.preSharedKey = PreSharedKey(base64Key: peerPresharedKey)
 
-        // tunnelConfiguration = scannedTunnelConfiguration
         let tunnelConfiguration = TunnelConfiguration(name: tunnelName, interface: interface, peers: [peer])
         
         tunnelsManager?.add(tunnelConfiguration: tunnelConfiguration) { result in
             switch result {
             case .failure(let error):
-                print("errror is=",error.message)
+                print("error is=",error.message)
                 if error.message == "alertTunnelAlreadyExistsWithThatNameTitle" {
-                    let tunnel = self.tunnelsManager!.tunnel(named: self.tunnelName)
+                    let tunnel = self.tunnelsManager!.tunnel(named: tunnelName)
                     self.tunnelsManager!.startActivation(of: tunnel!)
                 }
                // ErrorPresenter.showErrorAlert(error: error, from: qrScanViewController, onDismissal: completionHandler)
             case .success:
                 print("added sucses")
-                let tunnel = self.tunnelsManager!.tunnel(named: self.tunnelName)
+                let tunnel = self.tunnelsManager!.tunnel(named: tunnelName)
                 self.tunnelsManager!.startActivation(of: tunnel!)
                // completionHandler?()
                 
@@ -143,4 +154,53 @@ class TunnelsController: TunnelsManagerActivationDelegate
         }
     }
   
+}
+extension TunnelsController: TunnelsManagerActivationDelegate, TunnelsManagerListDelegate{
+    // TunnelsManagerListDelegate
+    func tunnelAdded(at index: Int, tunnel: TunnelContainer) {
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelAdded, object: ["tunnelName": tunnel.name])
+    }
+    
+    func tunnelRemoved(at index: Int, tunnel: TunnelContainer) {
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelRemoved, object: ["tunnelName": tunnel.name])
+    }
+    
+    // TunnelsManagerActivationDelegate
+    func tunnelActivationAttemptFailed(tunnel: TunnelContainer, error: TunnelsManagerActivationAttemptError) {
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelActivationAttemptFailed, object: ["tunnelName": tunnel.name])
+        self.fail(tunnelName: tunnel.name)
+    }
+    
+    func tunnelActivationAttemptSucceeded(tunnel: TunnelContainer) {
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelActivationAttemptSucceeded, object: ["tunnelName": tunnel.name])
+        self.connected(tunnelName: tunnel.name)
+    }
+    
+    func tunnelActivationFailed(tunnel: TunnelContainer) {
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelStatusFail, object: ["tunnelName": tunnel.name])
+        self.fail(tunnelName: tunnel.name)
+    }
+    
+    func tunnelActivationSucceeded(tunnel: TunnelContainer) {
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelActivationSucceeded, object: ["tunnelName": tunnel.name])
+        self.connected(tunnelName: tunnel.name)
+    }
+    
+    //
+    func connected(tunnelName: String){
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelStatusConnected, object: ["tunnelName": tunnelName])
+    }
+    
+    func connecting(tunnelName: String){
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelStatusConnecting, object: ["tunnelName": tunnelName])
+    }
+    
+    func disconnect(tunnelName: String){
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelStatusDisconnect, object: ["tunnelName": tunnelName])
+    }
+    
+    func fail(tunnelName: String){
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelStatusFail, object: ["tunnelName": tunnelName])
+    }
+    
 }

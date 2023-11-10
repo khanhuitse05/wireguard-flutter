@@ -9,9 +9,7 @@ import WireGuardKitC
 import WireGuardKitGo
 
 protocol TunnelsManagerListDelegate: AnyObject {
-    func tunnelAdded(at index: Int)
-    func tunnelModified(at index: Int)
-    func tunnelMoved(from oldIndex: Int, to newIndex: Int)
+    func tunnelAdded(at index: Int, tunnel: TunnelContainer)
     func tunnelRemoved(at index: Int, tunnel: TunnelContainer)
 }
 
@@ -100,7 +98,7 @@ class TunnelsManager {
                     
                     let tunnel = TunnelContainer(tunnel: loadedTunnelProvider)
                     self.tunnels.append(tunnel)
-                    self.tunnelsListDelegate?.tunnelAdded(at: self.tunnels.firstIndex(of: tunnel)!)
+                    self.tunnelsListDelegate?.tunnelAdded(at: self.tunnels.firstIndex(of: tunnel)!, tunnel: tunnel)
                 }
             }
         }
@@ -152,7 +150,7 @@ class TunnelsManager {
 
             let tunnel = TunnelContainer(tunnel: tunnelProviderManager)
             self.tunnels.append(tunnel)
-            self.tunnelsListDelegate?.tunnelAdded(at: self.tunnels.firstIndex(of: tunnel)!)
+            self.tunnelsListDelegate?.tunnelAdded(at: self.tunnels.firstIndex(of: tunnel)!, tunnel: tunnel)
             completionHandler(.success(tunnel))
         }
     }
@@ -384,6 +382,10 @@ class TunnelContainer: NSObject {
         hasOnDemandRules = !(tunnel.onDemandRules ?? []).isEmpty
         tunnelProvider = tunnel
         super.init()
+    }
+    
+    func detail() -> String{
+        return "name: \(name), status: \(status)"
     }
 
     func getRuntimeTunnelConfiguration(completionHandler: @escaping ((TunnelConfiguration?) -> Void)) {
