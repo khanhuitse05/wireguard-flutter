@@ -159,7 +159,7 @@ void _obtainStats() {
 
 ## Contributions
 
-- Contributions are welcome. If you find a bug or want to add a new feature, please open a new [issue](https://github.com/Wachu985/flutter_wireguard_vpn/issues) or send a [pull request](https://github.com/Wachu985/flutter_wireguard_vpn/pulls).
+- Contributions are welcome. If you find a bug or want to add a new feature, please open a new [issue](https://github.com/j1mmyto9/wireguard-flutter/issues) or send a [pull request](https://github.com/j1mmyto9/wireguard-flutter/pulls).
 
 ## License
 
