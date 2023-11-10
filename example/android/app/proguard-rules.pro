@@ -1,0 +1,2 @@
+-keep class app.pingak9.wireguard_vpn.** {*;}
+-keep class com.beust.klaxon.** {*;}
