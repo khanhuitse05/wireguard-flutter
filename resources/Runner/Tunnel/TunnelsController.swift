@@ -86,7 +86,6 @@ class TunnelsController
             return
         }
         let container = tunnelsManager?.tunnel(named: tunnelName)
-        EventNames.A
         // TODO: Implement get statistics for iOS
     }
     

@@ -1,4 +1,10 @@
-class EventNames{
+//
+//  EventNames.swift
+//  wireguard_vpn
+//
+//  Created by Khánh Tô on 11/11/2023.
+//
+public class EventNames{
     public static var methodGetTunnelNames = "getTunnelNames"
     public static var methodGetState = "setState"
     public static var methodGetStats = "getStats"
