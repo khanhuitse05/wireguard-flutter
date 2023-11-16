@@ -107,8 +107,18 @@ For run and setup wireguard follow => https://github.com/WireGuard/wireguard-app
 
 ### IV. Troubleshooting
 1. You must use iOS Devices instead of Simulator to connect
-2. There is error when run Flutter ios. You must open Xcode to run iOS
+2. Build or run iOS - `unable to spawn process '/usr/bin/make' (No such file or directory)`
     - ![](./resources/Images/image7.png)
+
+    **Resolve**
+    
+    - The main idea is to use `./resource/Scripts/build_wireguard_go_bridge.sh` script in your External Build System configuration:
+    1. copy the file in `./resource/Scripts/build_wireguard_go_bridge.sh` to your `ios` folder
+    2. Open Xcode - then select your External Build System and change to:
+    - Build Tool: `$(PROJECT_DIR)/build_wireguard_go_bridge.sh`
+    - Arguments: `$(ACTION)`
+
+    - Directory: `<empty>`
 
 # Usage
 
