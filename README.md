@@ -119,6 +119,8 @@ For run and setup wireguard follow => https://github.com/WireGuard/wireguard-app
     - Arguments: `$(ACTION)`
 
     - Directory: `<empty>`
+3. Build iOS `clang: error: linker command failed with exit code 1 (use -v to see invocation)`
+    - https://stackoverflow.com/a/76865570
 
 # Usage
 
