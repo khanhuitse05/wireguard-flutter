@@ -4,6 +4,7 @@ import 'src/models/models.dart';
 import 'wireguard_vpn_platform_interface.dart';
 
 export 'src/models/models.dart';
+export 'src/models/event_names.dart';
 export 'src/errors/exceptions.dart';
 
 /// Main Class

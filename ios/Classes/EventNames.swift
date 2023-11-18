@@ -6,7 +6,7 @@
 //
 public class EventNames{
     public static var methodGetTunnelNames = "getTunnelNames"
-    public static var methodGetState = "setState"
+    public static var methodSetState = "setState"
     public static var methodGetStats = "getStats"
     
     public static var notificationSetState = Notification.Name("wireguard_vpn_set_state")
@@ -17,8 +17,8 @@ public class EventNames{
     
     public static var tunnelAdded = "tunnel_added"
     public static var tunnelRemoved = "tunnel_removed"
-    public static var tunnelActivationAttemptSucceeded = "tunnel_activation_attempt_failed"
-    public static var tunnelActivationAttemptFailed = "tunnel_activation_attempt_succeeded"
+    public static var tunnelActivationAttemptFailed = "tunnel_activation_attempt_failed"
+    public static var tunnelActivationAttemptSucceeded = "tunnel_activation_attempt_succeeded"
     public static var tunnelActivationFailed = "tunnel_activation_failed"
     public static var tunnelActivationSucceeded = "tunnel_activation_succeeded"
     public static var tunnelStatusConnected = "tunnel_status_connected"

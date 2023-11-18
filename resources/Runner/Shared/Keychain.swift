@@ -36,7 +36,7 @@ class Keychain {
                                     kSecReturnPersistentRef: true]
 
         #if os(iOS)
-        items[kSecAttrAccessGroup] = Bundle.main.object(forInfoDictionaryKey: appGroupIdInfoDictionaryKey) as? String
+        items[kSecAttrAccessGroup] = appGroupIdInfoDictionaryKey
         items[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlock
         #else
         #error("Unimplemented")

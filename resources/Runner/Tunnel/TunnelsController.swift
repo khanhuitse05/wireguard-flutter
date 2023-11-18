@@ -22,12 +22,9 @@ class TunnelsController
             guard let self = self else { return }
             switch result {
             case .failure(let error):
-                print("errror is2=",error)
+                print("error is2=",error)
             case .success(let tunnelsManager):
-                self.tunnelsManager = tunnelsManager
                 self.setTunnelsManager(tunnelsManager: tunnelsManager)
-
-                tunnelsManager.activationDelegate = self
 
                 self.onTunnelsManagerReady?(tunnelsManager)
                 self.onTunnelsManagerReady = nil
@@ -36,7 +33,7 @@ class TunnelsController
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationSetState(_:)), name: EventNames.notificationSetState, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetName(_:)), name: EventNames.notificationGetNames, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetStats(_:)), name: EventNames.notificationGetNames, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetStats(_:)), name: EventNames.notificationGetStats, object: nil)
     }
     
     @objc func handleNotificationSetState(_ notification: Notification) {
@@ -72,7 +69,7 @@ class TunnelsController
         containers?.forEach{
             print($0.detail())
             if($0.status == .active){
-                WireguardVpnPlugin.sendEvent(message: "tunnel_get_name", object: ["tunnelName": $0.name])
+                WireguardVpnPlugin.sendEvent(message: EventNames.tunnelGetName, object: ["tunnelName": $0.name])
                 return
             }
         }
@@ -91,7 +88,8 @@ class TunnelsController
     
     func setTunnelsManager(tunnelsManager: TunnelsManager) {
         self.tunnelsManager = tunnelsManager
-//        tunnelsManager.tunnelsListDelegate = self
+        tunnelsManager.activationDelegate = self
+        tunnelsManager.tunnelsListDelegate = self
     }
     
     func onDisconnecting(tunnelName: String){
@@ -137,7 +135,7 @@ class TunnelsController
         tunnelsManager?.add(tunnelConfiguration: tunnelConfiguration) { result in
             switch result {
             case .failure(let error):
-                print("error is=",error.message)
+                print("errror is=",error.message)
                 if error.message == "alertTunnelAlreadyExistsWithThatNameTitle" {
                     let tunnel = self.tunnelsManager!.tunnel(named: tunnelName)
                     self.tunnelsManager!.startActivation(of: tunnel!)

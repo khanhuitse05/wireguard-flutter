@@ -385,7 +385,7 @@ class TunnelContainer: NSObject {
     }
     
     func detail() -> String{
-        return "name: \(name), status: \(status)"
+        return "name: \(name), status: \(status), isActivateOnDemandEnabled: \(isActivateOnDemandEnabled), hasOnDemandRules: \(hasOnDemandRules)"
     }
 
     func getRuntimeTunnelConfiguration(completionHandler: @escaping ((TunnelConfiguration?) -> Void)) {

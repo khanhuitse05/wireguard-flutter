@@ -61,7 +61,7 @@ public class WireguardVpnPlugin: NSObject, FlutterPlugin {
         case EventNames.methodGetTunnelNames:
               handleGetNames(result: result);
               break;
-        case EventNames.methodGetState:
+        case EventNames.methodSetState:
               handleSetState(call, result: result);
               break;
         case EventNames.methodGetStats:

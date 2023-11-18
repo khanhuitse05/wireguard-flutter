@@ -2,6 +2,7 @@ import 'dart:convert';
 
 // import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:wireguard_vpn/src/models/event_names.dart';
 
 import 'src/errors/exceptions.dart';
 import 'src/models/models.dart';
@@ -17,7 +18,7 @@ class MethodChannelWireguardVpn extends WireguardVpnPlatform {
   Future<bool?> changeStateParams(SetStateParams params) async {
     try {
       final state = await methodChannel.invokeMethod<bool>(
-          'setState', jsonEncode(params.toJson()));
+          EventNames.methodSetState, jsonEncode(params.toJson()));
 
       return state;
     } on Exception catch (e) {
@@ -29,7 +30,8 @@ class MethodChannelWireguardVpn extends WireguardVpnPlatform {
   @override
   Future<String?> runningTunnelNames() async {
     try {
-      final result = await methodChannel.invokeMethod('getTunnelNames');
+      final result =
+          await methodChannel.invokeMethod(EventNames.methodGetTunnelNames);
       return result;
     } on PlatformException catch (e) {
       throw ConnectionException(message: e.message ?? '');
@@ -40,7 +42,8 @@ class MethodChannelWireguardVpn extends WireguardVpnPlatform {
   @override
   Future<Stats?> tunnelGetStats(String name) async {
     try {
-      final result = await methodChannel.invokeMethod('getStats', name);
+      final result =
+          await methodChannel.invokeMethod(EventNames.methodGetStats, name);
       final stats = Stats.fromJson(jsonDecode(result));
       return stats;
     } on Exception catch (e) {
