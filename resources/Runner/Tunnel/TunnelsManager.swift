@@ -111,9 +111,11 @@ class TunnelsManager {
             return
         }
 
-        if tunnels.contains(where: { $0.name == tunnelName }) {
-            completionHandler(.failure(TunnelsManagerError.tunnelAlreadyExistsWithThatName))
-            return
+        if let index = tunnels.firstIndex(where: { $0.name == tunnelName }){
+//           let tunnel = tunnels.remove(at: index);
+//           tunnel.tunnelProvider.removeFromPreferences();
+             completionHandler(.failure(TunnelsManagerError.tunnelAlreadyExistsWithThatName))
+             return
         }
 
         let tunnelProviderManager = NETunnelProviderManager()
@@ -189,6 +191,22 @@ class TunnelsManager {
             }
         }
     }
+    
+    func removeAllTunnels() {
+        tunnels.forEach {
+            $0.tunnelProvider.removeFromPreferences();
+        }
+        tunnels.removeAll();
+    }
+    
+    func removeAllTunnels(except: String) {
+        tunnels.forEach {
+            if($0.name != except){
+                $0.tunnelProvider.removeFromPreferences();
+            }
+        }
+        tunnels.removeAll(where: { $0.name != except} );
+    }
 
     func numberOfTunnels() -> Int {
         return tunnels.count
@@ -227,6 +245,8 @@ class TunnelsManager {
             activationDelegate?.tunnelActivationAttemptFailed(tunnel: tunnel, error: .tunnelIsNotInactive)
             return
         }
+        // Remove all tunnel except current
+        removeAllTunnels(except: tunnel.name)
 
         if let alreadyWaitingTunnel = tunnels.first(where: { $0.status == .waiting }) {
             alreadyWaitingTunnel.status = .inactive
@@ -258,7 +278,6 @@ class TunnelsManager {
     func startDeactivation(of tunnel: TunnelContainer) {
         tunnel.isAttemptingActivation = false
         guard tunnel.status != .inactive && tunnel.status != .deactivating else { return }
-        
         tunnel.startDeactivation()
     }
 

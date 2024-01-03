@@ -38,4 +38,9 @@ abstract class WireguardVpnPlatform extends PlatformInterface {
   Future<Stats?> tunnelGetStats(String name) {
     throw UnimplementedError('runningTunnelNames() has not been implemented.');
   }
+
+  /// Declaration of the method [removeAllTunnels] this is responsible for remove all tunnels.
+  Future removeAllTunnels() {
+    throw UnimplementedError('removeAllTunnels() has not been implemented.');
+  }
 }

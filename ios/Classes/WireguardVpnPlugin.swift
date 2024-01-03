@@ -67,24 +67,33 @@ public class WireguardVpnPlugin: NSObject, FlutterPlugin {
         case EventNames.methodGetStats:
               handleGetStats(call, result: result);
               break;
+        case EventNames.methodRemoveAllTunnels:
+              handleRemoveAllTunnels(result: result);
+              break;
             default:
               result(FlutterMethodNotImplemented)
               break;
         }
     }
-
-    public func handleGetNames(result: @escaping FlutterResult){
-        NotificationCenter.default.post(name: EventNames.notificationGetNames, object: nil)
+    
+    public func handleRemoveAllTunnels(result: @escaping FlutterResult){
+        NotificationCenter.default.post(name: Notification.Name.notificationRemoveAllTunnels, object: nil)
         result("")
     }
+
+    public func handleGetNames(result: @escaping FlutterResult){
+        NotificationCenter.default.post(name: Notification.Name.notificationGetNames, object: nil)
+        result("")
+    }
+    
     public func handleSetState(_ call: FlutterMethodCall, result: @escaping FlutterResult){
         let arguments:[String: Any] = stringToDictionary(text: call.arguments as? String)
         let state: Bool = (arguments["state"] as? Int) == 1
-        NotificationCenter.default.post(name: EventNames.notificationSetState, object: arguments)
+        NotificationCenter.default.post(name: Notification.Name.notificationSetState, object: arguments)
         result(state)
     }
     public func handleGetStats(_ call: FlutterMethodCall, result: @escaping FlutterResult){
-        NotificationCenter.default.post(name: EventNames.notificationGetStats, object: call.arguments as? String)
+        NotificationCenter.default.post(name: Notification.Name.notificationGetStats, object: call.arguments as? String)
         result("")
     }
     

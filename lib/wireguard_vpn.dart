@@ -31,4 +31,9 @@ class WireguardVpn {
       const EventChannel('pingak9/wireguard-state-flutter')
           .receiveBroadcastStream()
           .cast();
+
+  /// Method [removeAllTunnels] this is responsible for remove all tunnels.
+  Future removeAllTunnels() {
+    return WireguardVpnPlatform.instance.removeAllTunnels();
+  }
 }

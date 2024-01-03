@@ -25,15 +25,19 @@ class TunnelsController
                 print("error is2=",error)
             case .success(let tunnelsManager):
                 self.setTunnelsManager(tunnelsManager: tunnelsManager)
-
                 self.onTunnelsManagerReady?(tunnelsManager)
                 self.onTunnelsManagerReady = nil
             }
         }
         
-        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationSetState(_:)), name: EventNames.notificationSetState, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetName(_:)), name: EventNames.notificationGetNames, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetStats(_:)), name: EventNames.notificationGetStats, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationSetState(_:)),
+                                               name: Notification.Name.notificationSetState, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetName(_:)),
+                                               name: Notification.Name.notificationGetNames, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationGetStats(_:)), 
+                                               name: Notification.Name.notificationGetStats, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotificationRemoveAllTunnels(_:)), 
+                                               name: Notification.Name.notificationRemoveAllTunnels, object: nil)
     }
     
     @objc func handleNotificationSetState(_ notification: Notification) {
@@ -63,17 +67,27 @@ class TunnelsController
             }
         }
     }
+    
+    @objc func handleNotificationRemoveAllTunnels(_ notification: Notification) {
+        print("Notification received! RemoveAllTunnels")
+        tunnelsManager?.removeAllTunnels()
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelRemovedAll, object: [:])
+    }
+    
     @objc func handleNotificationGetName(_ notification: Notification) {
         print("Notification received! GetName")
         let containers = tunnelsManager?.mapTunnels(transform: { $0 })
-        containers?.forEach{
-            print($0.detail())
-            if($0.status == .active){
-                WireguardVpnPlugin.sendEvent(message: EventNames.tunnelGetName, object: ["tunnelName": $0.name])
-                return
+        if let containers = containers{
+            for container in containers{
+                print(container.detail())
+                if(container.status == .active){
+                    WireguardVpnPlugin.sendEvent(message: EventNames.tunnelGetName, object: ["tunnelName": container.name])
+                    return
+                }
             }
         }
-        // none of tunnel is running
+        // None of tunnel is running
+        WireguardVpnPlugin.sendEvent(message: EventNames.tunnelGetName, object: [:])
     }
     
     @objc func handleNotificationGetStats(_ notification: Notification) {
@@ -82,7 +96,7 @@ class TunnelsController
             // Provide tunnel name to get statistics
             return
         }
-        let container = tunnelsManager?.tunnel(named: tunnelName)
+        _ = tunnelsManager?.tunnel(named: tunnelName)
         // TODO: Implement get statistics for iOS
     }
     
@@ -96,9 +110,9 @@ class TunnelsController
         if let tunnel = self.tunnelsManager!.tunnel(named: tunnelName) {
             if  tunnel.status == .active {
                 self.tunnelsManager!.startDeactivation(of: tunnel)
-                self.disconnect(tunnelName: tunnel.name)
             }
         }
+        self.disconnect(tunnelName: tunnelName)
     }
     
     func onConnecting(
@@ -135,14 +149,18 @@ class TunnelsController
         tunnelsManager?.add(tunnelConfiguration: tunnelConfiguration) { result in
             switch result {
             case .failure(let error):
-                print("errror is=",error.message)
-                if error.message == "alertTunnelAlreadyExistsWithThatNameTitle" {
+                print("error is=",error)
+                switch(error){
+                case .tunnelAlreadyExistsWithThatName:
                     let tunnel = self.tunnelsManager!.tunnel(named: tunnelName)
                     self.tunnelsManager!.startActivation(of: tunnel!)
+                    break;
+                default:
+                    // ErrorPresenter.showErrorAlert(error: error, from: qrScanViewController, onDismissal: completionHandler)
+                    break;
                 }
-               // ErrorPresenter.showErrorAlert(error: error, from: qrScanViewController, onDismissal: completionHandler)
             case .success:
-                print("added sucses")
+                print("added success")
                 let tunnel = self.tunnelsManager!.tunnel(named: tunnelName)
                 self.tunnelsManager!.startActivation(of: tunnel!)
                // completionHandler?()

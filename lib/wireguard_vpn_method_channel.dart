@@ -50,4 +50,14 @@ class MethodChannelWireguardVpn extends WireguardVpnPlatform {
       throw ConnectionException(message: e.toString());
     }
   }
+
+  /// Implementation of the method [removeAllTunnels] using the PlatformChannel.
+  @override
+  Future removeAllTunnels() async {
+    try {
+      await methodChannel.invokeMethod(EventNames.methodRemoveAllTunnels);
+    } on Exception catch (e) {
+      throw ConnectionException(message: e.toString());
+    }
+  }
 }
