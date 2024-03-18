@@ -119,6 +119,7 @@ class WireguardVpnPlugin: FlutterPlugin, MethodCallHandler ,ActivityAware,Plugin
             "getTunnelNames" -> handleGetNames(result)
             "setState" -> handleSetState(call.arguments, result)
             "getStats" -> handleGetStats(call.arguments, result)
+            "removeAllTunnels" -> handleRemoveAllTunnels(result)
             else -> flutterNotImplemented(result)
         }
     }
@@ -272,6 +273,9 @@ class WireguardVpnPlugin: FlutterPlugin, MethodCallHandler ,ActivityAware,Plugin
                 flutterError(result, e.message.toString())
             }
         }
+    }
+    private fun handleRemoveAllTunnels(result: MethodChannel.Result) {
+        // Android do not implement
     }
 
     /**
