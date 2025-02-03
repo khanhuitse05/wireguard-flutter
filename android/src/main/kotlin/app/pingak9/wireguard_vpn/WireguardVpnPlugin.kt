@@ -41,7 +41,7 @@ class WireguardVpnPlugin: FlutterPlugin, MethodCallHandler ,ActivityAware,Plugin
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
-    private lateinit var channel : MethodChannel
+    private lateinit var channel: MethodChannel
     private val permissionRequestCode = 10014
     private val channelName = "pingak9/wireguard-flutter"
     private val futureBackend = CompletableDeferred<Backend>()
@@ -50,55 +50,56 @@ class WireguardVpnPlugin: FlutterPlugin, MethodCallHandler ,ActivityAware,Plugin
     private lateinit var rootShell: RootShell
     private lateinit var toolsInstaller: ToolsInstaller
     private var havePermission = false
-    private lateinit var context:Context 
-    private var activity:Activity? = null
+    private lateinit var context: Context
+    private var activity: Activity? = null
 
     // Have to keep tunnels, because WireGuard requires to use the _same_
     // instance of a tunnel every time you change the state.
     private var tunnels = HashMap<String, Tunnel>()
 
     companion object {
-    const val TAG = "MainActivity"
+        const val TAG = "MainActivity"
     }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean{
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         //super.onActivityResult(requestCode, resultCode, data)
        havePermission = (requestCode == permissionRequestCode) && (resultCode == Activity.RESULT_OK)
-       return havePermission
+        return havePermission
 
     }
 
     override fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
         Log.d(TAG, "Entre 1")
         this.activity = activityPluginBinding.activity as FlutterActivity
-    // TODO: your plugin is now attached to an Activity
+        // TODO: your plugin is now attached to an Activity
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-    // TODO: the Activity your plugin was attached to was
-    // destroyed to change configuration.
-    // This call will be followed by onReattachedToActivityForConfigChanges().
+        // TODO: the Activity your plugin was attached to was
+        // destroyed to change configuration.
+        // This call will be followed by onReattachedToActivityForConfigChanges().
         this.activity = null;
     }
 
     override fun onReattachedToActivityForConfigChanges(activityPluginBinding: ActivityPluginBinding) {
-    // TODO: your plugin is now attached to a new Activity
-    // after a configuration change.
+        // TODO: your plugin is now attached to a new Activity
+        // after a configuration change.
         this.activity = activityPluginBinding.activity as FlutterActivity
     }
 
     override fun onDetachedFromActivity() {
-    // TODO: your plugin is no longer associated with an Activity.
-    // Clean up references.
+        // TODO: your plugin is no longer associated with an Activity.
+        // Clean up references.
         this.activity = null;
     }
-  
-    
+
+
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, channelName)
         context = flutterPluginBinding.applicationContext
         rootShell = RootShell(context)
         toolsInstaller = ToolsInstaller(context, rootShell)
-    
+
         scope.launch(Dispatchers.IO) {
             try {
                 backend = createBackend()
@@ -129,36 +130,36 @@ class WireguardVpnPlugin: FlutterPlugin, MethodCallHandler ,ActivityAware,Plugin
     }
 
     private fun checkPermission() {
-            val intent = GoBackend.VpnService.prepare(this.activity)
-            if (intent != null) {
-                havePermission = false
-                this.activity?.startActivityForResult(intent, permissionRequestCode)
-            } else {
-                havePermission = true
-            }
+        val intent = this.activity?.let { GoBackend.VpnService.prepare(it) }
+        if (intent != null) {
+            havePermission = false
+            this.activity?.startActivityForResult(intent, permissionRequestCode)
+        } else {
+            havePermission = true
+        }
     }
 
     private fun createBackend(): Backend {
-            var backend: Backend? = null
-            var didStartRootShell = false
-            try {
-                if (!didStartRootShell) {
-                    rootShell.start()
-                }
-                val wgQuickBackend = WgQuickBackend(context, rootShell, toolsInstaller)
-                //wgQuickBackend.setMultipleTunnels(UserKnobs.multipleTunnels.first())
-                backend = wgQuickBackend
-                // what is that? I totally did not understand
-                /*UserKnobs.multipleTunnels.onEach {
-                wgQuickBackend.setMultipleTunnels(it)
-                }.launchIn(coroutineScope)*/
-            } catch (ignored: Exception) {
+        var backend: Backend? = null
+        var didStartRootShell = false
+        try {
+            if (!didStartRootShell) {
+                rootShell.start()
+            }
+            val wgQuickBackend = WgQuickBackend(context, rootShell, toolsInstaller)
+            //wgQuickBackend.setMultipleTunnels(UserKnobs.multipleTunnels.first())
+            backend = wgQuickBackend
+            // what is that? I totally did not understand
+            /*UserKnobs.multipleTunnels.onEach {
+            wgQuickBackend.setMultipleTunnels(it)
+            }.launchIn(coroutineScope)*/
+        } catch (ignored: Exception) {
                 Log.e(TAG, Log.getStackTraceString(ignored))
-            }
-            if (backend == null) {
-                backend = GoBackend(context)
-            }
-            return backend
+        }
+        if (backend == null) {
+            backend = GoBackend(context)
+        }
+        return backend
     }
 
     private fun flutterSuccess(result: MethodChannel.Result, o: Any) {
@@ -262,7 +263,7 @@ class WireguardVpnPlugin: FlutterPlugin, MethodCallHandler ,ActivityAware,Plugin
                 val stats = futureBackend.await().getStatistics(tunnel(tunnelName))
 
                 flutterSuccess(result, Klaxon().toJsonString(
-                    Stats(stats.totalRx(), stats.totalTx())
+                        Stats(stats.totalRx(), stats.totalTx())
                 ))
 
             } catch (e: BackendException) {
@@ -274,6 +275,7 @@ class WireguardVpnPlugin: FlutterPlugin, MethodCallHandler ,ActivityAware,Plugin
             }
         }
     }
+
     private fun handleRemoveAllTunnels(result: MethodChannel.Result) {
         // Android do not implement
     }
@@ -289,8 +291,10 @@ class WireguardVpnPlugin: FlutterPlugin, MethodCallHandler ,ActivityAware,Plugin
 
 typealias StateChangeCallback = (Tunnel.State) -> Unit
 
-class MyTunnel(private val name: String,
-               private val onStateChanged: StateChangeCallback? = null) : Tunnel {
+class MyTunnel(
+    private val name: String,
+    private val onStateChanged: StateChangeCallback? = null
+) : Tunnel {
 
     override fun getName() = name
 
@@ -314,7 +318,7 @@ class TunnelData(
     val peerAllowedIp: String,
     val peerPublicKey: String,
     val peerEndpoint: String,
-    val peerPresharedKey:String
+    val peerPresharedKey: String
 )
 
 class StateChangeData(
