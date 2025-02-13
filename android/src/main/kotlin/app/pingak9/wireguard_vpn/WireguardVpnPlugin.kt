@@ -10,7 +10,6 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.PluginRegistry
-import io.flutter.plugin.common.PluginRegistry.Registrar
 
 import android.app.Activity
 import io.flutter.embedding.android.FlutterActivity

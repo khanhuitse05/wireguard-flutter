@@ -2,14 +2,14 @@ group 'app.pingak9.wireguard_vpn'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '1.9.10'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath 'com.android.tools.build:gradle:8.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -29,7 +29,7 @@ android {
         namespace 'app.pingak9.wireguard_vpn'
     }
 
-    compileSdkVersion 33
+    compileSdk 34
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -62,11 +62,11 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.wireguard.android:tunnel:1.0.20230321'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1"
     implementation 'com.beust:klaxon:5.5'
-    implementation 'androidx.appcompat:appcompat:1.4.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 
     /// to run wireguard on Android 25 or lower
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
 }
